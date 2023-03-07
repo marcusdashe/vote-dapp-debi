@@ -1,0 +1,2 @@
+// export const CONTRACT_ADDRESS = '0x3ea6dad667bdCAca87A428f2fF1CCA7aea24A6C3' //Polygon Mumbai
+export const CONTRACT_ADDRESS = "0xc0638780a2DD117c43f5385081008181392a7D71"; // Hardhat
