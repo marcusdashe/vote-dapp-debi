@@ -66,6 +66,11 @@ contract Vote {
         registrar = msg.sender;
     }
 
+    function ChangeOfOwnership(address _newAddress) public onlyregistrar {
+        require(_newAddress != address(0), "Enter a valid address");
+        registrar = _newAddress;
+    }
+
     // // Get Registrar
 
     function getRegistrar() external view returns (address) {
