@@ -1,19 +1,26 @@
 import { CONTRACT_ADDRESS } from '../../constants';
 import React, { useEffect, useState } from 'react'
 import { useForm } from "react-hook-form";
-import { useContract, useSigner, useAccount } from 'wagmi';
+import { useContract, useSigner, useAccount, useConnect } from 'wagmi';
 import { epochToHumanReadable } from '../../utiils/dates';
 import artifacts from '../../src/artifacts/contracts/Vote.sol/Vote.json'
 import Alert from '../../components/Alert'
+import toast, { Toaster } from 'react-hot-toast';
+import { useRouter } from 'next/router';
+import { BigNumber, ethers } from 'ethers';
 
 function Register() {
     const { register, handleSubmit, watch, formState: { errors } } = useForm();
+
+    const router = useRouter();
 
     const [elections, setElections] = useState();
     const [loading, setLoading] = useState(false);
     const [showErrorAlert, setShowErrorAlert] = useState(false);
 
 
+
+    const { data: connectionData } = useConnect()
     const { data: signer } = useSigner()
     const { address } = useAccount()
     const contract = useContract({
@@ -34,6 +41,7 @@ function Register() {
     }
 
     const registerContestant = async(data, e) => {
+
         try {
             console.log(data);
 
@@ -48,17 +56,29 @@ function Register() {
 
             const{ name, platform, stateCode, constituencyCode, electionID }= dataObj
 
-            const tx = await contract.registerContestant(name, platform ,stateCode ,constituencyCode ,electionID);
+            const tx = await contract.registerContestant(
+                name,
+                platform,
+                stateCode,
+                constituencyCode,
+                electionID,
+            );
+            console.log("🚀 ~ file: register.js:65 ~ registerContestant ~ tx:", tx)
             setLoading(true)
             await tx.wait();
             setLoading(false)
 
 
             // reset form fields
+            toast.success('Contestant added!')
             e.target.reset();
+
+            router.push('/contestants');
+
         } catch (error) {
             console.log("🚀 ~ file: register.js:38 ~ registerContestant ~ error:", error)
-            setShowErrorAlert(true)
+            // setShowErrorAlert(true)
+            toast.error('Error adding contestant!')
             
         }
 
@@ -93,8 +113,13 @@ function Register() {
         </div>
     }
 
+    if(connectionData?.chain.unsupported) {
+        return;
+    }
+
     return (
         <div className='bg-vote-300 p-4 rounded-md shadow-xl'>
+            <pre>{connectionData?.chain.unsupported}</pre>
 
             { showErrorAlert && <Alert type='danger' message='There was an error adding contestant.' /> }
 
@@ -144,13 +169,6 @@ function Register() {
                         <div>
                             <input {...register("constituencycode", { required: true })} className='w-full h-9 rounded-md p-2 text-sm' type="number" />
                             <span className='text-red-900 text-sm'>{errors.constituencycode && <span>This field is required</span>}</span>
-                        </div>
-                    </div>
-                    <div className='mb-4'>
-                        <label className='text-sm font-semibold text-vote-700'>Contestant ID</label>
-                        <div>
-                            <input {...register("contestantId", { required: true })} className='w-full h-9 rounded-md p-2 text-sm' type="number" />
-                            <span className='text-red-900 text-sm'>{errors.contestantId && <span>This field is required</span>}</span>
                         </div>
                     </div>
                     <div className='mb-4'>

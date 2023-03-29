@@ -30,7 +30,7 @@ return (
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/contestants/register" className="flex text-white text-xl font-bold hover:text-[#351626] transition">
+                                <Link href="/contestants" className="flex text-white text-xl font-bold hover:text-[#351626] transition">
                                     Contestants
                                 </Link>
                             </li>

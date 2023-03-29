@@ -8,6 +8,7 @@ import { fetchSigner } from '@wagmi/core'
 import { useIsMounted } from '../../hooks/useIsMounted';
 import artifacts from '../../src/artifacts/contracts/Vote.sol/Vote.json'
 import { useRouter } from 'next/router';
+import { toast } from 'react-hot-toast';
 
 function Register() {
     const { register, handleSubmit, watch, formState: { errors } } = useForm();
@@ -48,13 +49,14 @@ function Register() {
             setLoading(true)
             tx.wait();
             setLoading(false)
-
-            alert('Voter registered')
+            
+            toast.success('Voter added!')
 
             router.push('/vote');
 
         } catch (error) {
             console.log("🚀 ~ file: register.js:45 ~ createVoter ~ error", error)
+            toast.error('Error registering voter!')
             
         }
 

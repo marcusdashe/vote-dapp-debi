@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { useAccount, useContract, useSigner } from 'wagmi';
 import { getCustomDateEpoch, getCustomDateEpochFromDateAndTime } from '../../utiils/dates';
 import artifacts from '../../src/artifacts/contracts/Vote.sol/Vote.json'
+import { toast } from 'react-hot-toast';
 
 function CreateElection() {
 
@@ -41,10 +42,14 @@ function CreateElection() {
             // reset form fields
             e.target.reset();
 
-            router.push('/elections/allelections')
+            // router.push('/elections/allelections')
+            toast.success('Election created!')
+
+            // router.push('/elections/allelections');
 
         } catch (error) {
             console.log("🚀 ~ file: create.js:37 ~ createElection ~ error", error)
+            toast.error('Error adding election!')
         }
 
     }

@@ -6,8 +6,6 @@ import artifacts from '../../src/artifacts/contracts/Vote.sol/Vote.json'
 
 function Contestants() {
 
-  const [elections, setElections] = useState();
-
   const { data: signer } = useSigner()
   const { address } = useAccount()
   const contract = useContract({
@@ -21,44 +19,56 @@ function Contestants() {
     const registrar = await contract.getRegistrar();
     setRegistrar(registrar);
   }
-  
+ 
 
   const [contestants, setContestants] = useState([]);
   const getContestants = async () => {
 
+      const electionMap = new Map();
+
+      const elections = await contract.getAllElections();
+      elections.map(election => electionMap.set(election.electionId?.toString(), election.electionName))
+
       const contestants = await contract.getAllContestants();
       const filteredContestants = contestants.map(contestant => {
-          return {
-            name: contestant.name,
-            platform: contestant.platform,
-            voteCount: contestant.voteCount?.toString(),
-            contestantId: contestant.contestantId?.toString(),
-            stateCode: contestant.stateCode?.toString(),
-            constituencyCode: contestant.constituencyCode?.toString(),
-            electionID: contestant.electionID?.toString(),
-          }
-      })
 
-      setContestants(filteredContestants)
+      console.log('elections', electionMap.get(contestant.electionID?.toString()))
+
+      return {
+        name: contestant.name,
+        platform: contestant.platform,
+        voteCount: contestant.voteCount?.toString(),
+        contestantId: contestant.contestantId?.toString(),
+        stateCode: contestant.stateCode?.toString(),
+        constituencyCode: contestant.constituencyCode?.toString(),
+        electionID: contestant.electionID?.toString(),
+        electionName: electionMap.get(contestant.electionID?.toString()),
+      }
+    })
+    console.log("🚀 ~ file: index.jsx:41 ~ filteredContestants ~ filteredContestants:", filteredContestants)
+
+    setContestants(filteredContestants)
 
   }
 
   useEffect(() => {
       if(!signer) return;
+
       getContestants();
       getRegistrar();
-  },[signer, getContestants])
+  },[signer])
 
   return (
+    <>
     <div className='flex flex-col'>
         <div className='flex justify-between items-center'>
             <h1 className='text-lg font-bold'>All Contestants</h1>
             {
               registrar === address ? (
                 <Link href='/contestants/register' className='py-2 px-4 text-sm bg-vote-500 text-white rounded-md'>Add Contestant</Link>
-              ) : (
-                <></>
-              )
+                ) : (
+                  <></>
+                  )
             }
         </div>
 
@@ -69,6 +79,7 @@ function Contestants() {
                         <tr className='text-left'>
                             <th>Name</th>
                             <th>Platform</th>
+                            <th>Election</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -76,6 +87,7 @@ function Contestants() {
                             return  <tr key={idx} className='my-3'>
                                         <td>{contestant.name}</td>
                                         <td>{contestant.platform}</td>
+                                        <td>{contestant.electionName}</td>
                                     </tr>
                         })}
                     </tbody>
@@ -83,6 +95,7 @@ function Contestants() {
             </div>
         </div>
     </div>
+    </>
   )
 }
 

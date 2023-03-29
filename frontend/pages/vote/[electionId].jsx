@@ -8,6 +8,7 @@ import pdp from '../../public/logos/pdp.png'
 import apc from '../../public/logos/pdp.png'
 import artifacts from '../../src/artifacts/contracts/Vote.sol/Vote.json'
 import { convertEpochToSpecificTimezone, epochToHumanReadable, epochToHumanReadableTime, getCurrentEpoch } from '../../utiils/dates';
+import { toast } from 'react-hot-toast';
 
 
 function ElectionId() {
@@ -98,20 +99,25 @@ function ElectionId() {
 
     try {
 
-      const tx = await contract.castVote( contestantId, address);
+      const tx = await contract.castVote( contestantId, address, {gasLimit: 100000});
       setLoading(true)
       await tx.wait();
       setLoading(false)
 
       getSingleElection();
       setVoted(true)
+      toast.success('Voted successfully!')
 
     } catch (error) {
       console.log(error.data?.code)
       if(error.data?.code === -32603) {
-      console.log('Insufficient funds for gas', 'error');
-      return;
-  } 
+        toast.error('InsuMetaMask Tx Signature: User denied transaction signaturefficient funds for gas', 'error');
+        return;
+      } 
+      if(error.data?.code === 4001) {
+        toast.error('MetaMask Tx Signature: User denied transaction signature');
+        return;
+      } 
       
     }
   }
@@ -132,11 +138,10 @@ function ElectionId() {
   }
 
   useEffect(() => {
-    if(elections.length == 0) return;
-
-    getSingleElection();
-
-  },[elections])
+      if(!signer) return;
+      getContestants();
+      getElections();
+  },[signer])
 
   useEffect(() => {
     if(!singleElection) return;
@@ -146,10 +151,11 @@ function ElectionId() {
   },[singleElection])
 
   useEffect(() => {
-      if(!signer) return;
-      getContestants();
-      getElections();
-  },[signer])
+    if(elections.length == 0) return;
+
+    getSingleElection();
+
+  },[elections])
 
   function convertEpochToHumanTime(epochTime) {
       var myDate = new Date( epochTime *1000);
@@ -172,8 +178,7 @@ function ElectionId() {
     }
 
     {
-      votingIsOpen && !votingHasEnded && 
-        !voted ? <div className='space-y-8'>
+      votingIsOpen && !votingHasEnded &&  !voted && <div className='space-y-8'>
 
           {
             contestants.length > 0 && contestants.map((contestant, idx) => {
@@ -185,11 +190,18 @@ function ElectionId() {
           }
 
         </div> 
-        : 
-        <div className='flex justify-center items-center p-5 rounded-xl w-full border border-green-500 bg-green-200 text-green-700 text-center'>
-          <p>You have voted successfully.</p>
-          <p>Voting results will be available by <span>{convertEpochToHumanTime(singleElection?.endTime / 1000)}</span></p>
+    }
+
+    {
+      voted && 
+      <>
+        <div className='flex justify-center items-center p-5 my-5 rounded-xl w-full border border-green-500 bg-green-200 text-green-700 text-center'>
+          <p className='flex w-full'>You have voted successfully.</p>
         </div>
+        <div className='flex justify-center items-center p-5 my-5 rounded-xl w-full border border-green-500 bg-green-200 text-green-700 text-center'>
+          <p className='flex w-full'>Voting results will be available on <span className='ml-1'>{convertEpochToHumanTime(singleElection?.endTime / 1000)}</span></p>
+        </div>
+      </>
     }
         
     </>

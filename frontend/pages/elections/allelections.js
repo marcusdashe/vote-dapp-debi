@@ -2,11 +2,14 @@ import { CONTRACT_ADDRESS } from '../../constants';
 import { fetchSigner, getContract } from '@wagmi/core';
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react'
-import { useContract, useSigner } from 'wagmi';
+import { useAccount, useContract, useSigner } from 'wagmi';
 import { epochToHumanReadable, epochToHumanReadableTime, convertEpochToSpecificTimezone } from '../../utiils/dates';
 import artifacts from '../../src/artifacts/contracts/Vote.sol/Vote.json'
+import { useIsMounted } from '../../hooks/useIsMounted';
 
 function Allelections() {
+    const { connector: activeConnector, isConnected } = useAccount()
+    const mounted = useIsMounted()
 
     const [elections, setElections] = useState();
 
@@ -53,7 +56,8 @@ function Allelections() {
                 <Link href='/elections/create' className='py-2 px-4 text-sm bg-vote-500 text-white rounded-md'>Create Election Type</Link>
             </div>
 
-            <div className='flex mt-12 w-full'>
+            {
+                mounted && isConnected && <div className='flex mt-12 w-full'>
                 <div className='bg-white rounded-md shadow-md p-4 w-full'>
                     <table className='table-auto border-collapse w-full text-xs'>
                         <thead>
@@ -77,6 +81,14 @@ function Allelections() {
                     </table>
                 </div>
             </div>
+            }
+
+            {
+                
+                mounted && !isConnected && <div className='flex mt-12 w-full'>
+                    <p className='text-red-600'>Connect wallet</p>
+                </div>
+            }
         </div>
     )
 }
